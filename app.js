@@ -3,13 +3,18 @@ angular.module('app',[])
         $scope.navInicio = true;
         $scope.formulario = {};
         $scope.showMensaje = {};
+        $scope.valoresSeleccion = [];
+        $scope.resultado = [];
+        $scope.contadores = {}
         $scope.leer = function (){
             appFactory.obtenerDatos().then(function(response) {
+                $scope.valoresSeleccion = [];
+                $scope.resultado = [];
+                $scope.contadores = {}
                 $scope.datos = response.data;
-                /*$scope.resultado =  _.countBy(response.data, response.data.seleccion);
-                console.log($scope.resultado);*/
+                $scope.crearDatos();
             }).catch(function(error) {
-                $scope.showMensaje.mensaje = 'Error al obtener datos: '+error.data.mensaje;
+                $scope.showMensaje.mensaje = 'Error al obtener datos';
                 $scope.showMensaje.visible = true;
             });
         }
@@ -23,10 +28,38 @@ angular.module('app',[])
                 $scope.showMensaje.visible = true;
             });
         }
-        $scope.countBySeleccion = function(seleccion) {
-            var filteredData = _.filter($scope.datos, { seleccion: seleccion });
-            return filteredData.length;
+        $scope.crearDatos = function() {
+            _.forEach($scope.datos,function (value){
+                $scope.valoresSeleccion.push(value.seleccion);
+            });
+            $scope.valoresSeleccion.forEach(function(genero) {
+                if ($scope.contadores[genero]) {
+                    $scope.contadores[genero]++;
+                } else {
+                    $scope.contadores[genero] = 1;
+                }
+            });
+            $scope.resultado = Object.entries($scope.contadores).map(function([genero, cantidad]) {
+                return [genero, cantidad];
+            });
+            bb.gere
+            $scope.crearGrafico();
         };
+
+        $scope.crearGrafico = function (){
+            bb.generate({
+                bindto: "#chart",
+                data: {
+                    columns: $scope.resultado,
+                    type: "bar",
+                    bar: {
+                        width: {
+                            ratio: 0.5
+                        }
+                    }
+                }
+            });
+        }
         $scope.navPag = function (pagActual){
             switch (pagActual){
                 case 'encuesta':
@@ -44,6 +77,7 @@ angular.module('app',[])
                     $scope.navInicio = true;
                     $scope.navEncuesta = false;
                     $scope.navResultados= false;
+                    $scope.showMensaje = {};
                     break;
             }
         }
